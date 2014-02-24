@@ -13,7 +13,7 @@ Also `pyBlastDB` can generate an actual database for [MetaCV](http://metacv.sour
 ### Usage
 ```
 python pyBlastDB.py [-h] [--version] [-type {nucl,prot}] [-metacv] [-exe EXE]
-                    -name NAME [-parse_seqids] [-clean]
+                    -name NAME [-parse_seqids]
 
   -h, --help         show this help message and exit
   --version          show program's version number and exit
@@ -24,8 +24,6 @@ python pyBlastDB.py [-h] [--version] [-type {nucl,prot}] [-metacv] [-exe EXE]
   -name NAME         outname for the databases
   -parse_seqids      Remove duplicated GI numbers from downloaded files and
                      run "makeblastdb" with -parse_seqids statement
-  -clean             Delete downloaded and created files after database
-                     creation? [default: False]
 ```
 
 ### Examples
