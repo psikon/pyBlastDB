@@ -9,7 +9,7 @@
 * MetaCV >= 2.2.9
 
 ### Usage
-
+```bash
 python pyBlastDB.py [-h] [--version] [-type {nucl,prot}] [-metacv] [-exe EXE]
                     -name NAME [-parse_seqids] [-clean]
 
@@ -27,6 +27,6 @@ optional arguments:
                      run "makeblastdb" with -parse_seqids statement
   -clean             Delete downloaded and created files after database
                      creation? [default: False]
-
+```
 
 
