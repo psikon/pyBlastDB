@@ -18,7 +18,6 @@ DB_TYPE = None
 DB_NAME = None
 PARSE_SEQIDS = True
 CLEAN = False
-ROOT_DIR = os.getcwd() + os.sep + DOWNLOAD_FOLDER
 
 # FTP Sources
 FTP_SERVER = 'ftp.ncbi.nih.gov' 
@@ -35,12 +34,13 @@ HUMAN_BICROBIOM = 'HUMAN_MICROBIOM/Bacteria/'
 DOWNLOAD_FOLDER =  'test'
 # location of output db
 DB_OUT = 'db_out'
+ROOT_DIR = os.getcwd() + os.sep + DOWNLOAD_FOLDER
 
 # SELECT sources for database creation
 SOURCES = [BACTERIA, BACTERIA_DRAFT, PLASMIDS, VIRUSES, FUNGI, FUNGI_DRAFT]
 
 # DEBUG
-DEBUG = False
+DEBUG = True
     
 def main(argv = None):
 
