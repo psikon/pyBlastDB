@@ -37,4 +37,11 @@ class MetaCVException(Exception):
         sys.stderr.write("\nError: Creation of MetaCV DB failed!\n")
         sys.exit(1)
         
-        
+class PathException(Exception):
+    def __init__(self, item):
+        sys.stderr.write("Error: No executable found for %s!\nPlease use -e/--exe argument or check path" % (item))
+        sys.exit(1)
+
+class ActualException(Exception):
+    def __init__(self, item):
+        sys.stderr.write('\n%s is actual!\n' % (item))

@@ -1,7 +1,7 @@
 import sys, os, tarfile
 from ftplib import FTP
 from src.utils import *
-from src.exceptions import ConnectionException, FtpPathException, FtpIndexException, FtpDownloadException
+from src.exceptions import ConnectionException, FtpPathException, FtpIndexException, FtpDownloadException, ActualException
 
 class ftp_functions:
     '''provide all needed functions for interacting with the ftp backend'''
@@ -67,15 +67,16 @@ class ftp_functions:
         return self.get_connection().nlst() 
     
     def close(self):
+        '''wrapper for closing open ftp connection'''
         self.get_connection().close()
         
-    # generate index of ftp folders
     def get_folder_index(self, folder):
         '''generate a list of all subfolders (without single files)'''
         dirs = []
         try: 
             sys.stdout.write("Identify folders for Downloading ... \n")
             self.get_connection().dir("", dirs.append)
+            # select only folder 
             dirs = [x.split()[-1] for x in dirs if x.startswith("d")]
             sys.stdout.write("Found %d folders\n" % (len(dirs)))
             return dirs if self.DEBUG is False else dirs[:10]
@@ -98,6 +99,7 @@ class ftp_functions:
         self.go_down(remote_folder)
         # get list of subfolder
         folder_list = self.get_folder_index(remote_folder)
+        
         # only for cmd output 
         downloaded = actual = all = 0
         # init progressbar
@@ -172,7 +174,7 @@ class ftp_functions:
             except:
                 raise FtpDownloadException(gi_map)
         else:
-            sys.stderr.write('\n%s is actual!\n' % (gi_map))
+            ActualException(gi_map)
 
         # extract file, if no extracted content exists
         if not os.path.exists(str.strip(local_version,'.gz')):
@@ -194,7 +196,7 @@ class ftp_functions:
             except:
                 raise FtpDownloadException(taxdump)
         else:
-            sys.stderr.write('\n%s is actual!\n' % (taxdump))
+            ActualException(taxdump)
         # extract parts of files , if no extracted content exists
         if not os.path.exists(self.DOWNLOAD_FOLDER +  os.sep + 'names.dmp'):
             try: 
@@ -225,7 +227,7 @@ class ftp_functions:
             except:
                 raise FtpDownloadException(idmapping)
         else:
-            sys.stderr.write('\n%s is actual!\n' % (idmapping))
+            ActualException(idmapping)
 
         # extract file, if no extracted content exists
         if not os.path.exists(str.strip(local_idmapping,'.gz')):
