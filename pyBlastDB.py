@@ -18,6 +18,7 @@ DB_TYPE = None
 DB_NAME = None
 PARSE_SEQIDS = True
 CLEAN = False
+ROOT_DIR = os.getcwd() + os.sep + DOWNLOAD_FOLDER
 
 # FTP Sources
 FTP_SERVER = 'ftp.ncbi.nih.gov' 
@@ -30,12 +31,12 @@ FUNGI = 'Fungi/'
 FUNGI_DRAFT = 'Fungi_DRAFT/'
 HUMAN_BICROBIOM = 'HUMAN_MICROBIOM/Bacteria/'
 
-# Local File Structure
+# location for downloaded content
 DOWNLOAD_FOLDER =  'test'
-ROOT_DIR = os.getcwd() + os.sep + DOWNLOAD_FOLDER
+# location of output db
 DB_OUT = 'db_out'
 
-# SELECT Sources for Databases
+# SELECT sources for database creation
 SOURCES = [BACTERIA, BACTERIA_DRAFT, PLASMIDS, VIRUSES, FUNGI, FUNGI_DRAFT]
 
 # DEBUG
@@ -60,14 +61,11 @@ def main(argv = None):
                         help = 'outname for the databases')
     parser.add_argument('-parse_seqids',dest = 'parse_seqids', action='store_false', default= True,
                         help = 'Remove duplicated GI numbers from downloaded files and run "makeblastdb" with -parse_seqids statement ')
-    parser.add_argument('-clean', dest = 'clean', action = 'store_true', default = False, 
-                        help = 'Delete downloaded and created files after database creation? [default: False]')
     # Process arguments
     args = parser.parse_args()
     DB_TYPE = args.type
     METACV = args.metacv
     DB_NAME = args.name  
-    CLEAN = args.clean
     EXECUTABLE = args.exe
     PARSE_SEQIDS = args.parse_seqids
     
@@ -85,9 +83,9 @@ def main(argv = None):
         ftp.connect()
         ftp.go_to_root()
         #start Downloading
-        # for ftp_folder in SOURCES:
-        #     sys.stdout.write("Downloading files from %s \n" % (ftp_folder))
-        #     ftp.download_folder(ftp_folder, DB_TYPE)
+        for ftp_folder in SOURCES:
+            sys.stdout.write("Downloading files from %s \n" % (ftp_folder))
+            ftp.download_folder(ftp_folder, DB_TYPE)
         # close ftp connection
         ftp.close()
         #run external database creation scripts
@@ -97,14 +95,7 @@ def main(argv = None):
             DBCreate.createMetaCVDB(DB_NAME)
         else:
             DBCreate.set_METACV(False)
-            DBCreate.createBlastDB(DB_NAME)
-       
-        # if CLEAN:
-        #     sys.stdout.write('Remove temporary files ...\n')
-        #     try: 
-        #         shutil.rmtree(DOWNLOAD_DIR, True)
-        #     except: 
-        #         sys.stderr.write("Error: Clean up failed!\n")        
+            DBCreate.createBlastDB(DB_NAME)     
   
 sys.exit(main())
 
