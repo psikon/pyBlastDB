@@ -29,7 +29,7 @@ FUNGI_DRAFT = 'Fungi_DRAFT/'
 HUMAN_BICROBIOM = 'HUMAN_MICROBIOM/Bacteria/'
 
 # location for downloaded content
-DOWNLOAD_FOLDER = 'test'
+DOWNLOAD_FOLDER = 'sources'
 # location of output db
 DB_OUT = 'db_out'
 ROOT_DIR = os.getcwd() + os.sep + DOWNLOAD_FOLDER
