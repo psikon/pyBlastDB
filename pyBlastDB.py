@@ -6,8 +6,6 @@
 # IMPORTS
 import sys, os
 from argparse import ArgumentParser
-from shutil import rmtree
-from src import ftp_functions
 from src.ftp_functions import ftp_functions
 from src.utils import create_folder, check_db_type, check_executable
 from src.db_creation import DBCreation
@@ -31,7 +29,7 @@ FUNGI_DRAFT = 'Fungi_DRAFT/'
 HUMAN_BICROBIOM = 'HUMAN_MICROBIOM/Bacteria/'
 
 # location for downloaded content
-DOWNLOAD_FOLDER =  'test'
+DOWNLOAD_FOLDER = 'test'
 # location of output db
 DB_OUT = 'db_out'
 ROOT_DIR = os.getcwd() + os.sep + DOWNLOAD_FOLDER
@@ -40,7 +38,7 @@ ROOT_DIR = os.getcwd() + os.sep + DOWNLOAD_FOLDER
 SOURCES = [BACTERIA, BACTERIA_DRAFT, PLASMIDS, VIRUSES, FUNGI, FUNGI_DRAFT]
 
 # DEBUG
-DEBUG = True
+DEBUG = False
     
 def main(argv = None):
 
@@ -53,13 +51,13 @@ def main(argv = None):
                         (os.path.basename(sys.argv[0])))
     parser.add_argument("-type", dest = "type", default = 'nucl', 
                         choices = {'nucl','prot'},  help = "set type of blastdb")
-    parser.add_argument('-metacv', dest = 'metacv', action= 'store_true',
+    parser.add_argument('-metacv', dest = 'metacv', action = 'store_true',
                         default = False, help = 'create metacv database')
     parser.add_argument('-exe', dest = 'exe', 
                         help = "if not installed, specify path to executable of 'makeblastdb' or 'metacv'")
     parser.add_argument('-name', dest = 'name', default = 'bacterial', required = True,
                         help = 'outname for the databases')
-    parser.add_argument('-parse_seqids',dest = 'parse_seqids', action='store_false', default= True,
+    parser.add_argument('-parse_seqids', dest = 'parse_seqids', action = 'store_false', default = True,
                         help = 'Remove duplicated GI numbers from downloaded files and run "makeblastdb" with -parse_seqids statement ')
     # Process arguments
     args = parser.parse_args()
@@ -69,8 +67,7 @@ def main(argv = None):
     EXECUTABLE = args.exe
     PARSE_SEQIDS = args.parse_seqids
     
-    if  __name__ ==  '__main__':
-        
+    if __name__ == '__main__':
         # check for protein or nucleotide database
         DB_TYPE = check_db_type(METACV, DB_TYPE)
         # verify executable for external scripts
@@ -82,17 +79,18 @@ def main(argv = None):
         # connect to Blast FTP Server 
         ftp.connect()
         ftp.go_to_root()
-        #start Downloading
+        # start Downloading
         for ftp_folder in SOURCES:
             sys.stdout.write("Downloading files from %s \n" % (ftp_folder))
             ftp.download_folder(ftp_folder, DB_TYPE)
         # close ftp connection
         ftp.close()
-        #run external database creation scripts
+        # run external database creation scripts
         DBCreate = DBCreation(DB_OUT, DOWNLOAD_FOLDER, DB_TYPE, PARSE_SEQIDS, DEBUG, EXECUTABLE)
         if METACV:
             DBCreate.set_METACV(True)
-            DBCreate.createMetaCVDB(DB_NAME)
+            # select the subfolder for MetaCV database
+            DBCreate.createMetaCVDB(DB_NAME, ['Bacteria', 'Bacteria_DRAFT'])
         else:
             DBCreate.set_METACV(False)
             DBCreate.createBlastDB(DB_NAME)     

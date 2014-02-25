@@ -1,7 +1,10 @@
 import sys, os, tarfile
 from ftplib import FTP
-from src.utils import *
-from src.exceptions import ConnectionException, FtpPathException, FtpIndexException, FtpDownloadException, ActualException
+from src.utils import select_files, get_local_timestamp, get_remote_timestamp, \
+                      update_progress, create_folder, is_compressed, is_tgz, is_gz, \
+                      extract_gz, extract_tar
+from src.exceptions import ConnectionException, FtpPathException, FtpIndexException, \
+                           FtpDownloadException, ActualException
 
 class ftp_functions:
     '''provide all needed functions for interacting with the ftp backend'''
@@ -40,7 +43,7 @@ class ftp_functions:
         try: 
             self.get_connection().cwd(self.FTP_ROOT)
             # only for debug mode
-            if self.DEBUG: sys.stdout.write("\nloc: "+ self.get_connection().pwd() + "\n")
+            if self.DEBUG: sys.stdout.write("\nloc: " + self.get_connection().pwd() + "\n")
         except:
             raise FtpPathException(self.FTP_ROOT)
     
@@ -49,7 +52,7 @@ class ftp_functions:
         try:
             self.get_connection().cwd(folder)
             # only for debug mode
-            if self.DEBUG: sys.stdout.write("\nloc: "+ self.get_connection().pwd() + "\n")
+            if self.DEBUG: sys.stdout.write("\nloc: " + self.get_connection().pwd() + "\n")
         except:
             raise FtpPathException(folder)
 
@@ -58,7 +61,7 @@ class ftp_functions:
         try:
             self.get_connection().cwd(self.UP)
             # only for debug mode
-            if self.DEBUG: sys.stdout.write("\nloc: "+ self.get_connection().pwd() + "\n")
+            if self.DEBUG: sys.stdout.write("\nloc: " + self.get_connection().pwd() + "\n")
         except:
             raise FtpPathException(self.UP)
     
@@ -69,7 +72,7 @@ class ftp_functions:
     def close(self):
         '''wrapper for closing open ftp connection'''
         self.get_connection().close()
-        
+      
     def get_folder_index(self, folder):
         '''generate a list of all subfolders (without single files)'''
         dirs = []
@@ -89,7 +92,8 @@ class ftp_functions:
     
     def is_actual(self, local, remote,):
         '''determine if local timestamp is newer or equal to remote timestamp'''
-        return True if get_local_timestamp(local + os.sep + remote) >= get_remote_timestamp(remote, self.get_connection()) else False
+        return True if get_local_timestamp(local + os.sep + remote) >= \
+                       get_remote_timestamp(remote, self.get_connection()) else False
 
     # download a folder with all subfolder from ftp source    
     def download_folder(self, remote_folder, db_type):
@@ -177,9 +181,9 @@ class ftp_functions:
             ActualException(gi_map)
 
         # extract file, if no extracted content exists
-        if not os.path.exists(str.strip(local_version,'.gz')):
+        if not os.path.exists(str.strip(local_version, '.gz')):
             extract_gz(local_version, self.DOWNLOAD_FOLDER)
-        return os.path.abspath(str.strip(local_version,'.gz'))
+        return os.path.abspath(str.strip(local_version, '.gz'))
         
     
     def get_taxdump(self, taxdump):
@@ -198,7 +202,7 @@ class ftp_functions:
         else:
             ActualException(taxdump)
         # extract parts of files , if no extracted content exists
-        if not os.path.exists(self.DOWNLOAD_FOLDER +  os.sep + 'names.dmp'):
+        if not os.path.exists(self.DOWNLOAD_FOLDER + os.sep + 'names.dmp'):
             try: 
                 with tarfile.open(local_taxdump) as tar:
                     # extract only names.dmp and nodes.dmp from taxdump
@@ -230,9 +234,9 @@ class ftp_functions:
             ActualException(idmapping)
 
         # extract file, if no extracted content exists
-        if not os.path.exists(str.strip(local_idmapping,'.gz')):
+        if not os.path.exists(str.strip(local_idmapping, '.gz')):
             try:
                 extract_gz(local_idmapping, self.DOWNLOAD_FOLDER)
             except:
                 raise ExtractionException(idmapping)
-        return os.path.abspath(str.strip(local_idmapping,'.gz')) 
+        return os.path.abspath(str.strip(local_idmapping, '.gz')) 

@@ -2,9 +2,9 @@ import sys, os, tarfile, gzip
 from datetime import datetime
 from src.exceptions import ExtractionException, PathException
 
-def check_type(var):
+def check_type(x):
     '''check needed type of file for database creation'''
-    return 'fna' if var in 'nucl' else 'faa'
+    return 'fna' if x in 'nucl' else 'faa'
 
 
 def check_db_type(METACV, db_type):
@@ -29,7 +29,7 @@ def extract_gz(item, path):
     '''extract all items from .gz compressed files'''
     try: 
         local = open('.'.join(item.split('.')[0:len(item.split('.'))-1]), 'wb')
-        z = gzip.open(item,'r')
+        z = gzip.open(item, 'r')
         local.write(z.read())
         z.close()
         local.close()  
@@ -67,7 +67,8 @@ def update_progress(progress):
         status = "Done...\r\n"
     # draw progressbar
     block = int(round(barLength*progress))
-    text = "\rPercent: [{0}] {1}% {2}".format( "="*block + " "*(barLength-block), round(progress*100,2), status)
+    text = "\rPercent: [{0}] {1}% {2}".format("=" * block + " " * (barLength - block), 
+        round(progress*100,2), status)
     sys.stdout.write(text)
     sys.stdout.flush()
 
@@ -77,7 +78,7 @@ def get_local_timestamp(item):
 
 def get_remote_timestamp(item, connection):
     '''get timestamp for a remote file and format it to a suitable time string'''
-    timestamp = connection.sendcmd('MDTM '+ item)                      
+    timestamp = connection.sendcmd('MDTM ' + item)                      
     return  str(datetime.strptime(timestamp[4:], "%Y%m%d%H%M%S"))
 
 def is_tgz(item):
@@ -104,9 +105,17 @@ def check_executable(executable, metacv):
         return whereis('metacv') if whereis('metacv') else PathException('metacv')
 
 def whereis(program):
-    ''' find the executable path for a given program'''
+    '''find the executable path for a given program'''
     for path in os.environ.get('PATH', '').split(':'):
         if os.path.exists(os.path.join(path, program)) and \
            not os.path.isdir(os.path.join(path, program)):
             return os.path.join(path, program)
     return None
+
+def writeLogFile(path, txt):
+    '''open a file and write txt to it'''
+    with open(path, 'w') as fout:
+        fout.write(txt)
+    return path
+
+

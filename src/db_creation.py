@@ -2,7 +2,7 @@ import sys, os
 import subprocess
 import shlex
 import fileinput
-from src.utils import check_type, create_folder, whereis
+from src.utils import check_type, create_folder, writeLogFile
 from src.exceptions import BlastDBException, MultiFastaException, MetaCVException
 from src.ftp_functions import ftp_functions
 
@@ -53,35 +53,37 @@ class DBCreation:
             for item in filelist:
                 with open(item, 'r') as f:
                     first_line = f.readline().split('|')[1]
+                    # check for duplicated gi numbers 
                     if not first_line in set(file_list):
                         file_list[first_line] = item  
                     else:
                         if self.DEBUG: sys.stdout.write("Remove GI " + first_line + "\n")
+            # overwrite complete list with filtered list
             filelist = file_list.values()
 
         return filelist
     
-    def get_taxid_index(self):
-        gi_map_file = self.DOWNLOAD_FOLDER + os.sep + 'gi_taxid_prot.dmp'
-        if os.path.exists(gi_map_file):
-            gi_map = []
-            with open(gi_map_file) as f:
-                gi_map.append()
-            sys.stderr.out("\nError: file %s not found" % (gi_map_file))
-        print gi_map
+    # def get_taxid_index(self):
+    #     gi_map_file = self.DOWNLOAD_FOLDER + os.sep + 'gi_taxid_prot.dmp'
+    #     if os.path.exists(gi_map_file):
+    #         gi_map = []
+    #         with open(gi_map_file) as f:
+    #             gi_map.append()
+    #         sys.stderr.out("\nError: file %s not found" % (gi_map_file))
+    #     print gi_map
 
     # generate a multi fasta file consisting of all single fasta
     # files downloaded by pyBlastDB
     def createBlast_MF(self, subfolder):
-        ''' generate a multifasta file from downloaded content, that will be input
-        file for the external database creation scripts'''
+        ''' generate a multifasta file from downloaded content, that will be used as input
+        file for the external database creation script of blast'''
         
         # get a list of all suitable input files
         fasta_list = self.get_local_index(subfolder)
         try:
-            sys.stdout.write("Create Input File ...\n")
+            sys.stdout.write("Create multifasta input database creation ...\n")
             # open the multifasta file
-            with open(self.BLAST_MF,'w') as fout:
+            with open(self.BLAST_MF, 'w') as fout:
                 # open every file in fasta_list and write the content to multifasta file
                 for line in fileinput.input(fasta_list):
                     fout.write(line)
@@ -91,18 +93,19 @@ class DBCreation:
             raise MultiFastaException()
            
     def createMetaCV_MF(self, subfolder):
+        '''gnerate a multifasta file from downloaded content, that will be used as input 
+        file for the external database creation script of MetaCV'''
         # get a list of all suitable input files
         fasta_list = self.get_local_index(subfolder)
-        
-        # try:
-        #      sys.stdout.write("Create Input File ...\n")
-        #     with open(self.METACV_MF,'w') as fout:
-        #         #update_progress(count)
-        #         for line in fileinput.input(fasta_list):
-        #             fout.write(line)
-        #     return self.METACV_MF
-        # except:
-        #     raise MultiFastaException()
+        try:
+            sys.stdout.write("Create multifasta input database creation ...\n")
+            with open(self.METACV_MF, 'w') as fout:
+                #update_progress(count)
+                for line in fileinput.input(fasta_list):
+                    fout.write(line)
+            return self.METACV_MF
+        except:
+            raise MultiFastaException()
 
     def get_parse_seqids_stmt(self):
         ''' test for parse_seqids argument and return the correct stmt'''
@@ -138,45 +141,73 @@ class DBCreation:
         except: 
             raise BlastDBException()
 
-    def createMetaCVDB(self, name):     
-        # FTP Server URLs
+    def get_taxonomy(self):
+        '''checks if taxonomical annotation for metacv database is existing and actual
+        if not the files will be downloaded from ncbi ftp server'''
+        # FTP Server information
         ncbiFTP = 'ftp.ncbi.nih.gov' 
-        uniprotFTP = 'ftp.uniprot.org'
-        # FTP Server directories
         taxonomy = '/pub/taxonomy/'
-        functional = 'pub/databases/uniprot/current_release/knowledgebase/idmapping'
         ncbi_files = ['gi_taxid_prot.dmp.gz', 'taxdump.tar.gz']
-        idmapping = 'idmapping.dat.gz'
-        additional_files = []
-        subfolder = ['Bacteria','Bacteria_DRAFT']
-
+        files = []
+        # establish connection
         ncbi = ftp_functions(ncbiFTP, taxonomy, self.DOWNLOAD_FOLDER, self.DEBUG)
         ncbi.connect()
+        # go to taxonomy dir
         ncbi.go_down(taxonomy)
         for item in ncbi_files:
+            # download actual files and extract needed files
             if item in ncbi_files[0]:
-                additional_files.append(ncbi.get_gi_map(item))
+                files.append(ncbi.get_gi_map(item))
             else:
-                [additional_files.append(x) for x in ncbi.get_taxdump(item)]
+                [files.append(x) for x in ncbi.get_taxdump(item)]
+        # close connection
         ncbi.close()
-        
-        # uniprot = ftp_functions(uniprotFTP, functional, DOWNLOAD_FOLDER, self.DEBUG)
-        # uniprot.connect()
-        # uniprot.go_down(functional)
-        # additional_files.append(uniprot.get_idmapping(idmapping))
-        # uniprot.close()
-        create_folder(self.DB_OUT)
-        multi_fasta = self.createMetaCV_MF(subfolder)
+        return files
 
-        # try: 
-        #     sys.stdout.write("Create MetaCV DB ...\n")
-        #     os.chdir(self.METACV_DB_OUT)
-        #     p = subprocess.Popen(shlex.split("%s formatdb %s %s %s" 
-        #                                     % ('self.EXECUTABLE,
-        #                                        '../'+multi_fasta,
-        #                                        ' '.join(map(str,additional_files)), 
-        #                                        name)))
-        #     p.wait()
-        # except: 
-        #     MetaCVException()
+    def get_functional_annotation(self):
+        '''checks if functional annotation if function annotion exists and is actual
+        if not the annotation will be downloaded from uniprot ftp server'''
+        # FTP Server information
+        uniprotFTP = 'ftp.uniprot.org'
+        functional = 'pub/databases/uniprot/current_release/knowledgebase/idmapping'
+        idmapping = 'idmapping.dat.gz'
+        # establish connection
+        uniprot = ftp_functions(uniprotFTP, functional, DOWNLOAD_FOLDER, self.DEBUG)
+        uniprot.connect()
+        # go to functional dir
+        uniprot.go_down(functional)
+        # download file and extract it
+        idmapping = uniprot.get_idmapping(idmapping)
+        # close connection
+        uniprot.close()
+        return idmapping
+
+    def createMetaCVDB(self, name, subfolder):     
+        '''wrapper for "metacv formatdb" script to generate a MetaCV database'''
+        # check additional_files and get location
+        taxonomy = self.get_taxonomy()
+        #functional = self.get_functional_annotation()
+
+        create_folder(self.DB_OUT)
+        # generate multifasta file
+        multi_fasta = self.createMetaCV_MF(subfolder)
+        # needed to for run the external script
+        full_path_exe = os.path.abspath(self.EXECUTABLE)
+        try:
+            sys.stdout.write("Create MetaCV DB ...\n")
+            # metacv cannot pipe the output to other folder, so it 
+            # have to be run in the same older as the output
+            os.chdir(self.DB_OUT)
+            # start metacv formatdb with standard parameter
+            p = subprocess.Popen(shlex.split("%s formatdb %s %s %s" 
+                                            % (full_path_exe,
+                                            '../' + (multi_fasta),
+                                            ' '.join(map(str,taxonomy)), 
+                                            name)))
+            p.wait()
+            # print statistics 
+            sys.stdout.write("Creation of MetaCV DB successfull!\nDatabase Location: %s\n" % 
+                (self.DB_OUT + os.sep + name))
+        except:
+            MetaCVException()
 
