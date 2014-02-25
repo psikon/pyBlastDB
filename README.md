@@ -1,6 +1,6 @@
 # pyBlastDB
 
-`pyBlastDB` is a tiny littlr program to automatically download complete directory trees from [NCBI ftp server](ftp://ftp.ncbi.nih.gov/genomes/) and generate a suitable blast database from the downloaded content. It is capable to generate nucleotide and protein blast databases from `fasta` content. Other file formats will not be provided at the moment.  
+`pyBlastDB` is a tiny little program to automatically download complete directory trees from [NCBI ftp server](ftp://ftp.ncbi.nih.gov/genomes/) and generate a suitable blast database from the downloaded content. It is capable to generate nucleotide and protein blast databases from `fasta` content. Other file formats will not be provided at the moment.  
 
 Also `pyBlastDB` can generate an actual database for [MetaCV](http://metacv.sourceforge.net/), based on actual protein datasets on NCBI file server. 
 
