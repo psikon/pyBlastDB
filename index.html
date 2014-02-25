@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>pyBlastDB by psikon</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>pyBlastDB</h1>
+          <h2>download complete directories from NCBI server and generate a blast or MetaCV database from them</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/psikon/pyBlastDB/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/psikon/pyBlastDB/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/psikon/pyBlastDB" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a name="pyblastdb" class="anchor" href="#pyblastdb"><span class="octicon octicon-link"></span></a>pyBlastDB</h1>
+
+<p><code>pyBlastDB</code> is a tiny little program to automatically download complete directory trees from <a>NCBI ftp server</a> and generate a suitable blast database from the downloaded content. It is capable to generate nucleotide and protein blast databases from <code>fasta</code> content. Other file formats will not be provided at the moment.  </p>
+
+<p>Also <code>pyBlastDB</code> can generate an actual database for <a href="http://metacv.sourceforge.net/">MetaCV</a>, based on actual protein datasets on NCBI file server. </p>
+
+<h3>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h3>
+
+<ul>
+<li>python &gt;= 2.7</li>
+<li>ncbi blast+ &gt;= 2.2.27</li>
+<li>MetaCV &gt;= 2.2.9</li>
+</ul><h3>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h3>
+
+<pre><code>python pyBlastDB.py [-h] [--version] [-type {nucl,prot}] [-metacv] [-exe EXE]
+                    -name NAME [-parse_seqids]
+
+  -h, --help         show this help message and exit
+  --version          show program's version number and exit
+  -type {nucl,prot}  set type of blastdb
+  -metacv            create metacv database
+  -exe EXE           if not installed, specify path to executable of
+                     'makeblastdb' or 'metacv'
+  -name NAME         outname for the databases
+  -parse_seqids      Remove duplicated GI numbers from downloaded files and
+                     run "makeblastdb" with -parse_seqids statement
+</code></pre>
+
+<h3>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h3>
+
+<p>Download nucleotide datasets from <a>NCBI ftp server</a> and create a nucleotide blast database.</p>
+
+<div class="highlight highlight-bash"><pre>python pyBlastDB.py -type nucl -name bacterial -parse_seqids
+</pre></div>
+
+<p>Download protein datasets from <a>NCBI ftp server</a> and create a MetaCV database (without functional annotation).</p>
+
+<div class="highlight highlight-bash"><pre>python pyBlastDB.py -metacv -name bacterial
+</pre></div>
+
+<h3>
+<a name="adjust-download-parameters" class="anchor" href="#adjust-download-parameters"><span class="octicon octicon-link"></span></a>Adjust download Parameters</h3>
+
+<p>In the main script <code>pyBlastDB.py</code> following values can be adjusted to fit change the downloadable content. The variables for FTP sources can be customized for personal use. Over the <em>sources</em> list the selection for the database creation can be adjusted. </p>
+
+<div class="highlight highlight-python"><pre><span class="c"># FTP Sources</span>
+<span class="n">FTP_SERVER</span> <span class="o">=</span> <span class="s">'ftp.ncbi.nih.gov'</span> 
+<span class="n">FTP_ROOT</span> <span class="o">=</span> <span class="s">'genomes/'</span>
+<span class="n">BACTERIA</span> <span class="o">=</span> <span class="s">'Bacteria'</span>
+<span class="n">BACTERIA_DRAFT</span> <span class="o">=</span> <span class="s">'Bacteria_DRAFT'</span>
+<span class="n">PLASMIDS</span> <span class="o">=</span> <span class="s">'Plasmids/'</span>
+<span class="n">VIRUSES</span> <span class="o">=</span> <span class="s">'Viruses/'</span>
+<span class="n">FUNGI</span> <span class="o">=</span> <span class="s">'Fungi/'</span>
+<span class="n">FUNGI_DRAFT</span> <span class="o">=</span> <span class="s">'Fungi_DRAFT/'</span>
+<span class="n">HUMAN_BICROBIOM</span> <span class="o">=</span> <span class="s">'HUMAN_MICROBIOM/Bacteria/'</span>
+
+<span class="c"># location for downloaded content</span>
+<span class="n">DOWNLOAD_FOLDER</span> <span class="o">=</span>  <span class="s">'sources'</span>
+<span class="c"># location of output db</span>
+<span class="n">DB_OUT</span> <span class="o">=</span> <span class="s">'db_out'</span>
+
+<span class="c"># SELECT sources for database creation</span>
+<span class="n">SOURCES</span> <span class="o">=</span> <span class="p">[</span><span class="n">BACTERIA</span><span class="p">,</span> <span class="n">BACTERIA_DRAFT</span><span class="p">,</span> <span class="n">PLASMIDS</span><span class="p">,</span> <span class="n">VIRUSES</span><span class="p">,</span> <span class="n">FUNGI</span><span class="p">,</span> <span class="n">FUNGI_DRAFT</span><span class="p">]</span>
+</pre></div>
+        </section>
+
+        <footer>
+          pyBlastDB is maintained by <a href="https://github.com/psikon">psikon</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
